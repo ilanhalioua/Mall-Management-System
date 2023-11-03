@@ -13,6 +13,22 @@ connect_args={
   }
 })
 
-with engine.connect() as conn:
-    result = conn.execute(text("SELECT * FROM Stores"))
-    print(result.all())
+def upload_product(product_name, product_price, product_store_name):
+  with engine.connect() as conn:
+      conn.execute(text("INSERT INTO Products (Name, Price, StoreID) VALUES (:name, :price, (SELECT ID FROM Stores WHERE Name = :store))"), 
+                   {"name": product_name, "price": product_price, "store": product_store_name})
+
+
+def upload_stores():
+  with engine.connect() as conn:
+    return conn.execute(text("SELECT Name FROM Stores"))
+
+
+# def load_employees_from_db():
+#   with engine.connect() as conn:
+#     result = conn.execute(text("SELECT * FROM Employees"))
+#     employees = []
+#     for row in result.all():
+#       employees.append(dict(row))
+#     return employees
+
