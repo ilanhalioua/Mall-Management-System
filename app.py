@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from database import upload_product, upload_stores #, load_employees_from_db
+from database import upload_product, load_stores, upload_store #, load_employees_from_db
 
 app = Flask(__name__)
 
@@ -7,6 +7,15 @@ app = Flask(__name__)
 def hello_mms():
   # employees = load_employees_from_db()
   return render_template('home.html')
+
+
+@app.route("/add_store", methods=['POST'])
+def add_store():
+    store_name = request.form['store-name']
+    store_area = request.form['store-area']
+    store_status = request.form['store-status']
+    upload_store(store_name, store_area, store_status)
+    return 'Store added successfully'
 
 @app.route("/add_product", methods=['POST'])
 def add_product():
@@ -18,7 +27,7 @@ def add_product():
 
 @app.route("/get_stores", methods=['GET'])
 def get_stores():
-  result = upload_stores()
+  result = load_stores()
   stores = [row[0] for row in result]
   return jsonify(stores)
 

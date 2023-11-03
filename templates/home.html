@@ -66,16 +66,28 @@
           <!-- Product info will be populated here -->
       </div>
 
-      <!-- Add products in store -->
-      <div id="add-product">
-          <h2>Add Product</h2>
-          <form action="/add_product" method="post">
-              <select id="store-name" name="store-name"></select>
-              <input type="text" id="product-name" name="product-name" placeholder="Enter product name">
-              <input type="text" id="product-price" name="product-price" placeholder="Enter product price">
-              <button type="submit">Add Product</button>
+      <!-- Add store -->
+      <div id="add-store">
+          <h2>Add Store</h2>
+          <form action="/add_store" method="post">
+              <input type="text" id="store-name" name="store-name" placeholder="Enter store name">
+              <input type="text" id="store-area" name="store-area" placeholder="Enter store area">
+              <input type="text" id="store-status" name="store-status" placeholder="Enter store status">
+              <button type="submit">Add Store</button>
           </form>
       </div>
+  
+  <!-- Add products in store -->
+  <div id="add-product">
+      <h2>Add Product</h2>
+      <form action="/add_product" method="post">
+          <select id="product-store-name" name="store-name"></select>  <!-- Change id here -->
+          <input type="text" id="product-name" name="product-name" placeholder="Enter product name">
+          <input type="text" id="product-price" name="product-price" placeholder="Enter product price">
+          <button type="submit">Add Product</button>
+      </form>
+  </div>
+
 
       <!-- Remove product in store -->
       <div id="remove-product">
@@ -93,18 +105,19 @@
       </div>
 
   <script>
-  window.onload = function() {
-      fetch('/get_stores')
-        .then(response => response.json())
-        .then(stores => {
-            const select = document.getElementById('store-name');
-            stores.forEach(store => {
-                const option = document.createElement('option');
-                option.text = store;
-                select.add(option);
-            });
-        });
-  };
+    window.onload = function() {
+        fetch('/get_stores')
+          .then(response => response.json())
+          .then(stores => {
+              const select = document.getElementById('product-store-name');  // Change id here
+              stores.forEach(store => {
+                  const option = document.createElement('option');
+                  option.text = store;
+                  select.appendChild(option);
+              });
+          });
+    };
+
   </script>
 </body>
 </html>
