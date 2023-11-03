@@ -66,16 +66,38 @@
           <!-- Product info will be populated here -->
       </div>
 
-      <!-- Add store -->
-      <div id="add-store">
-          <h2>Add Store</h2>
-          <form action="/add_store" method="post">
-              <input type="text" id="store-name" name="store-name" placeholder="Enter store name">
-              <input type="text" id="store-area" name="store-area" placeholder="Enter store area">
-              <input type="text" id="store-status" name="store-status" placeholder="Enter store status">
-              <button type="submit">Add Store</button>
-          </form>
-      </div>
+  <!-- Add store -->
+  <div id="add-store">
+      <h2>Add Store</h2>
+      <form action="/add_store" method="post">
+          <input type="text" id="store-name" name="store-name" placeholder="Enter store name">
+
+          <!-- Area dropdown -->
+          <select id="store-area" name="store-area">
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+              <option value="D">D</option>
+          </select>
+
+          <!-- Status dropdown -->
+          <select id="store-status" name="store-status">
+              <option value="Open">Open</option>
+              <option value="Closed">Closed</option>
+          </select>
+
+          <button type="submit">Add Store</button>
+      </form>
+  </div>
+
+  <!-- Remove store -->
+  <div id="remove-store">
+      <h2>Remove Store</h2>
+      <form action="/remove_store" method="post">
+          <select id="remove-store-name" name="store-name"></select>
+          <button type="submit">Remove Store</button>
+      </form>
+  </div>
   
   <!-- Add products in store -->
   <div id="add-product">
@@ -110,6 +132,18 @@
           .then(response => response.json())
           .then(stores => {
               const select = document.getElementById('product-store-name');  // Change id here
+              stores.forEach(store => {
+                  const option = document.createElement('option');
+                  option.text = store;
+                  select.appendChild(option);
+              });
+          });
+
+        // Fetch stores for remove store dropdown
+        fetch('/get_stores')
+          .then(response => response.json())
+          .then(stores => {
+              const select = document.getElementById('remove-store-name');
               stores.forEach(store => {
                   const option = document.createElement('option');
                   option.text = store;

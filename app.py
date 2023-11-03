@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from database import upload_product, load_stores, upload_store #, load_employees_from_db
+from database import upload_product, load_stores, upload_store, delete_store #, load_employees_from_db
 
 app = Flask(__name__)
 
@@ -16,6 +16,13 @@ def add_store():
     store_status = request.form['store-status']
     upload_store(store_name, store_area, store_status)
     return 'Store added successfully'
+
+@app.route("/remove_store", methods=['POST'])
+def remove_store():
+    store_name = request.form['store-name']
+    delete_store(store_name)
+    return 'Store removed successfully'
+
 
 @app.route("/add_product", methods=['POST'])
 def add_product():
