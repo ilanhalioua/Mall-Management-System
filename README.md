@@ -1,2 +1,12 @@
 # Mall-Management-System
-Solution Overview: 1. Show all employees 2. Get store and price of a given product 3. Add products in store 4. Remove product in store 5. Show all information 6. Save all information
+Main Features: 
+
+1. Display the information that the user requests with several related statistics.
+
+2. Search for a product in mall stores and display user requested data with several related statistics.
+
+3. Add/Remove Stores.
+
+4. Add/Remove Products from current Stores in the mall.
+
+5. Edit user requested data.
