@@ -3,71 +3,60 @@
 <head>
     <title>Mall Management System</title>
     <style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f4f4;
-    }
+      body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+          background-color: #f4f4f4;
+      }
+      
+      h1 {
+          background-color: #333;
+          color: #fff;
+          padding: 10px 0;
+          text-align: center;
+      }
 
-    h1 {
-        background-color: #333;
-        color: #fff;
-        padding: 10px 0;
-        text-align: center;
-    }
+      h2 {
+          color: #333;
+      }
 
-    h2 {
-        color: #333;
-    }
+      .section {
+          margin: 20px;
+          padding: 20px;
+          background-color: #fff;
+          border-radius: 5px;
+      }
 
-    div {
-        margin: 20px;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 5px;
-    }
+      button {
+          display: block;
+          width: 200px;
+          height: 25px;
+          margin: 20px 0;
+          background-color: #333;
+          color: #fff;
+          text-align: center;
+          border-radius: 5px;
+      }
 
-    button {
-        display: block;
-        width: 200px;
-        height: 25px;
-        margin: 20px 0;
-        background-color: #333;
-        color: #fff;
-        text-align: center;
-        border-radius: 5px;
-    }
-
-    input[type="text"], select {
-        width: 50%;
-        max-width: 300px; 
-        padding: 12px 20px;
-        margin: 8px 0;
-        box-sizing: border-box;
-    }
+      input[type="text"], select {
+          width: 50%;
+          max-width: 300px; 
+          padding: 12px 20px;
+          margin: 8px 0;
+          box-sizing: border-box;
+      }
     </style>
 </head>
 <body>
-  <h1>Mall Management System</h1>
+  <h1>MALL MANAGEMENT SYSTEM</h1>
 
-      <!-- Show all employees -->
-      <div id="employees">
-          <h2>Employees</h2>
-          <button onclick="showAllEmployees()">Show All Employees</button>
-          <!-- Employee data will be populated here -->
-      </div>
+  <!-- ADD/EDIT/DELETE SECTION -->
+  <div class="section">
+    <h1>Add/Edit/Delete</h1>
 
-      <!-- Get store and price of a given product -->
-      <div id="product-info">
-          <h2>Product Information</h2>
-          <input type="text" id="product-name" name="product-name" placeholder="Enter product name">
-          <button onclick="getProductInfo()">Get Info</button>
-          <!-- Product info will be populated here -->
-      </div>
-
-  <!-- Add store -->
-  <div id="add-store">
+    <!-- Add store -->
+    <div id="add-store">
       <h2>Add Store</h2>
       <form action="/add_store" method="post">
           <input type="text" id="store-name" name="store-name" placeholder="Enter store name">
@@ -88,19 +77,19 @@
 
           <button type="submit">Add Store</button>
       </form>
-  </div>
+    </div>
 
-  <!-- Remove store -->
-  <div id="remove-store">
+    <!-- Remove store -->
+    <div id="remove-store">
       <h2>Remove Store</h2>
       <form action="/remove_store" method="post">
           <select id="remove-store-name" name="store-name"></select>
           <button type="submit">Remove Store</button>
       </form>
-  </div>
-  
-  <!-- Add products in store -->
-  <div id="add-product">
+    </div>
+
+    <!-- Add products in store -->
+    <div id="add-product">
       <h2>Add Product</h2>
       <form action="/add_product" method="post">
           <select id="product-store-name" name="store-name"></select>  <!-- Change id here -->
@@ -108,23 +97,43 @@
           <input type="text" id="product-price" name="product-price" placeholder="Enter product price">
           <button type="submit">Add Product</button>
       </form>
+    </div>
+
+    <!-- Remove product in store -->
+    <div id="remove-product">
+      <h2>Remove Product</h2>
+      <input type="text" id="store-name-remove" placeholder="Enter store name">
+      <input type="text" id="product-id-remove" placeholder="Enter product ID">
+      <button onclick="removeProduct()">Remove Product</button>
+    </div>
   </div>
 
+  <!-- REPORT INTERFACE SECTION -->
+  <div class="section">
+    <h1>Report Interface</h1>
 
-      <!-- Remove product in store -->
-      <div id="remove-product">
-          <h2>Remove Product</h2>
-          <input type="text" id="store-name-remove" placeholder="Enter store name">
-          <input type="text" id="product-id-remove" placeholder="Enter product ID">
-          <button onclick="removeProduct()">Remove Product</button>
-      </div>
+    <!-- Show all employees -->
+    <div id="employees">
+      <h2>Employees</h2>
+      <button onclick="showAllEmployees()">Show All Employees</button>
+      <!-- Employee data will be populated here -->
+    </div>
 
-      <!-- Display all information -->
-      <div id="all-info">
-          <h2>All Information</h2>
-          <button onclick="getAllInfo()">Display All Info</button>
-          <!-- All info will be populated here -->
-      </div>
+    <!-- Get store and price of a given product -->
+    <div id="product-info">
+      <h2>Product Information</h2>
+      <input type="text" id="product-name" name="product-name" placeholder="Enter product name">
+      <button onclick="getProductInfo()">Get Info</button>
+      <!-- Product info will be populated here -->
+    </div>
+
+    <!-- Display all information -->
+    <div id="all-info">
+      <h2>All Information</h2>
+      <button onclick="getAllInfo()">Display All Info</button>
+      <!-- All info will be populated here -->
+    </div>
+  </div>
 
   <script>
     window.onload = function() {
