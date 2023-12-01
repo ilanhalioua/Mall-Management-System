@@ -46,6 +46,23 @@
           margin: 8px 0;
           box-sizing: border-box;
       }
+
+      .container {
+          display: flex;
+          justify-content: space-between;
+      }
+
+      .container div {
+          flex: 1;
+          padding-left: 10px;
+      }
+
+      hr {
+        height:5px;
+        border-width:0;
+        background-color:#999;
+      }
+
     </style>
 </head>
 <body>
@@ -55,14 +72,88 @@
   <div class="section">
     <h1>Add/Edit/Delete</h1>
 
-    <!-- Add store -->
-    <div id="add-store">
-      <h2>Add Store</h2>
-      <form action="/add_store" method="post">
-          <input type="text" id="store-name" name="store-name" placeholder="Enter store name">
+    <div class="container">
+      <!-- Add store -->
+      <div id="add-store">
+        <h2>Add Store</h2>
+        <form action="/add_store" method="post">
+            <input type="text" id="store-name" name="store-name" placeholder="Enter store name">
+
+            <!-- Area dropdown -->
+            <select id="store-area" name="store-area">
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+            </select>
+
+            <!-- Status dropdown -->
+            <select id="store-status" name="store-status">
+                <option value="Open">Open</option>
+                <option value="Closed">Closed</option>
+            </select>
+
+            <button type="submit">Add Store</button>
+        </form>
+      </div>
+
+      <!-- Remove store -->
+      <div id="remove-store">
+        <h2>Remove Store</h2>
+        <form action="/remove_store" method="post" onsubmit="return confirmDeleteStore()">
+            <select id="remove-store-name" name="store-name"></select>
+            <button type="submit">Remove Store</button>
+        </form>
+      </div>
+
+    </div>
+    
+    <hr>
+    
+    <div class="container">
+      <!-- Add products in store -->
+      <div id="add-product">
+        <h2>Add Product</h2>
+        <form action="/add_product" method="post">
+            <select id="product-store-name" name="store-name"></select>  <!-- Change id here -->
+            <input type="text" id="product-name" name="product-name" placeholder="Enter product name">
+            <input type="text" id="product-price" name="product-price" placeholder="Enter product price">
+            <button type="submit">Add Product</button>
+        </form>
+      </div>
+
+      <!-- Remove product in store -->
+      <div id="remove-product">
+        <h2>Remove Product</h2>
+        <form action="/remove_product" method="post">
+            <select id="remove-product-id" name="product-id"></select>
+            <button type="submit">Remove Product</button>
+        </form>
+      </div>
+
+    </div>
+
+    <hr>
+    
+    <!-- ADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDED -->
+    <!-- Edit selection dropdown -->
+    <div id="edit-selection">
+      <h2>Edit</h2>
+      <select id="edit-select" name="edit-select" onchange="showEditOptions(this.value)">
+          <option value="">Select...</option>
+          <option value="Stores">Stores</option>
+          <option value="Products">Products</option>
+      </select>
+    </div>
+
+    <!-- Edit store -->
+    <div id="edit-store" style="display: none;">
+      <h2>Edit Store</h2>
+      <form action="/edit_store" method="post">
+          <select id="edit-store-name" name="store-name"></select>
 
           <!-- Area dropdown -->
-          <select id="store-area" name="store-area">
+          <select id="edit-store-area" name="store-area">
               <option value="A">A</option>
               <option value="B">B</option>
               <option value="C">C</option>
@@ -70,44 +161,30 @@
           </select>
 
           <!-- Status dropdown -->
-          <select id="store-status" name="store-status">
+          <select id="edit-store-status" name="store-status">
               <option value="Open">Open</option>
               <option value="Closed">Closed</option>
           </select>
 
-          <button type="submit">Add Store</button>
+          <button type="submit">Edit Store</button>
       </form>
     </div>
-
-    <!-- Remove store -->
-    <div id="remove-store">
-      <h2>Remove Store</h2>
-      <form action="/remove_store" method="post">
-          <select id="remove-store-name" name="store-name"></select>
-          <button type="submit">Remove Store</button>
-      </form>
+    
+    <!-- Edit product -->
+      <div id="edit-product" style="display: none;">
+        <h2>Edit Product</h2>
+        <form action="/edit_product" method="post">
+            <select id="edit-product-store-name" name="store-name"></select>
+            <input type="text" id="edit-product-name" name="product-name" placeholder="Enter product name">
+            <input type="text" id="edit-product-price" name="product-price" placeholder="Enter product price">
+            <button type="submit">Edit Product</button>
+        </form>
+      </div>
     </div>
-
-    <!-- Add products in store -->
-    <div id="add-product">
-      <h2>Add Product</h2>
-      <form action="/add_product" method="post">
-          <select id="product-store-name" name="store-name"></select>  <!-- Change id here -->
-          <input type="text" id="product-name" name="product-name" placeholder="Enter product name">
-          <input type="text" id="product-price" name="product-price" placeholder="Enter product price">
-          <button type="submit">Add Product</button>
-      </form>
-    </div>
-
-    <!-- Remove product in store -->
-    <div id="remove-product">
-      <h2>Remove Product</h2>
-      <input type="text" id="store-name-remove" placeholder="Enter store name">
-      <input type="text" id="product-id-remove" placeholder="Enter product ID">
-      <button onclick="removeProduct()">Remove Product</button>
-    </div>
+    <!-- ADDDDDDDDDDDDDDDDDDDDDDDDDDDDDED -->
+  
   </div>
-
+    
   <!-- REPORT INTERFACE SECTION -->
   <div class="section">
     <h1>Report Interface</h1>
@@ -137,6 +214,19 @@
 
   <script>
     window.onload = function() {
+        // Fetch products for remove product dropdown
+        fetch('/get_products')
+          .then(response => response.json())
+          .then(products => {
+              const select = document.getElementById('remove-product-id');
+              products.forEach(product => {
+                  const option = document.createElement('option');
+                  option.text = `${product.id} (${product.name})`;
+                  option.value = product.id;
+                  select.appendChild(option);
+              });
+          });
+      
         fetch('/get_stores')
           .then(response => response.json())
           .then(stores => {
@@ -160,6 +250,38 @@
               });
           });
     };
+
+    function confirmDeleteStore() {
+        return confirm("Are you sure you want to remove this store? All of its products will be removed.");
+    }
+    
+    function showEditOptions(value) {
+        if (value === 'Stores') {
+            document.getElementById('edit-store').style.display = 'block';
+            document.getElementById('edit-product').style.display = 'none';
+
+            // Fetch stores for edit store dropdown
+            fetch('/get_stores')
+              .then(response => response.json())
+              .then(stores => {
+                  const select = document.getElementById('edit-store-name');
+                  // Clear existing options
+                  select.innerHTML = '';
+                  stores.forEach(store => {
+                      const option = document.createElement('option');
+                      option.text = store;
+                      select.appendChild(option);
+                  });
+              });
+        } else if (value === 'Products') {
+            document.getElementById('edit-product').style.display = 'block';
+            document.getElementById('edit-store').style.display = 'none';
+        } else {
+            document.getElementById('edit-store').style.display = 'none';
+            document.getElementById('edit-product').style.display = 'none';
+        }
+    }
+
 
   </script>
 </body>
