@@ -166,7 +166,7 @@
               <option value="Closed">Closed</option>
           </select>
 
-          <button type="submit">Edit Store</button>
+          <button type="submit">Upload</button>
       </form>
     </div>
     
@@ -175,33 +175,47 @@
         <h2>Edit Product</h2>
         <form action="/edit_product" method="post">
             <select id="edit-product-store-name" name="store-name"></select>
-            <input type="text" id="edit-product-name" name="product-name" placeholder="Enter product name">
-            <input type="text" id="edit-product-price" name="product-price" placeholder="Enter product price">
-            <button type="submit">Edit Product</button>
+            <input type="text" id="edit-product-name" name="product-name" placeholder="Enter new product name">
+            <input type="text" id="edit-product-price" name="product-price" placeholder="Enter new product price">
+            <button type="submit">Upload</button>
         </form>
       </div>
     </div>
     <!-- ADDDDDDDDDDDDDDDDDDDDDDDDDDDDDED -->
   
   </div>
+
+  <!-- SEARCH PRODUCT SECTION -->
+  <div class="section">
+    <h1>Search Product</h1>
+      <form id="search-form" action="/search_product" method="post">
+      <!-- Product dropdown -->
+      <select id="search-product-name" name="product-name"></select>
+
+      <!-- Information checkboxes -->
+      <div id="search-product-info">
+        <input type="checkbox" id="info-stores" name="product-info" value="Stores">
+        <label for="info-stores">Stores</label><br>
+        <input type="checkbox" id="info-price" name="product-info" value="Price">
+        <label for="info-price">Price</label><br>
+        <input type="checkbox" id="info-id" name="product-info" value="Product ID">
+        <label for="info-id">Product ID</label><br>
+      </div>
+
+
+      <button type="submit">Submit</button>
+    </form>
+  </div>
     
   <!-- REPORT INTERFACE SECTION -->
   <div class="section">
-    <h1>Report Interface</h1>
+    <h1>Select Data to Display</h1>
 
     <!-- Show all employees -->
     <div id="employees">
       <h2>Employees</h2>
       <button onclick="showAllEmployees()">Show All Employees</button>
       <!-- Employee data will be populated here -->
-    </div>
-
-    <!-- Get store and price of a given product -->
-    <div id="product-info">
-      <h2>Product Information</h2>
-      <input type="text" id="product-name" name="product-name" placeholder="Enter product name">
-      <button onclick="getProductInfo()">Get Info</button>
-      <!-- Product info will be populated here -->
     </div>
 
     <!-- Display all information -->
@@ -211,6 +225,7 @@
       <!-- All info will be populated here -->
     </div>
   </div>
+
 
   <script>
     window.onload = function() {
@@ -226,7 +241,28 @@
                   select.appendChild(option);
               });
           });
-      
+
+        // Fetch distinct products for search product dropdown
+        fetch('/get_distinct_products')  // Change this to the route that returns distinct product names
+          .then(response => response.json())
+          .then(products => {
+            const select = document.getElementById('search-product-name');  // Change this to the ID of your product dropdown menu
+            products.forEach(product => {
+              const option = document.createElement('option');
+              option.text = product;  // Directly use product here
+              select.appendChild(option);
+            });
+          });
+
+        document.getElementById('search-form').addEventListener('submit', function(e) {
+          var checkboxes = document.querySelectorAll('#search-product-info input[type="checkbox"]');
+          var checkedOne = Array.prototype.slice.call(checkboxes).some(x => x.checked);
+          if (!checkedOne) {
+            alert('Please select at least one option!');
+            e.preventDefault();
+          }
+        });
+
         fetch('/get_stores')
           .then(response => response.json())
           .then(stores => {
@@ -282,6 +318,7 @@
         }
     }
 
+    
 
   </script>
 </body>
