@@ -93,7 +93,7 @@
                 <option value="Closed">Closed</option>
             </select>
 
-            <button type="submit">Add Store</button>
+            <button type="submit">Upload</button>
         </form>
       </div>
 
@@ -102,7 +102,7 @@
         <h2>Remove Store</h2>
         <form action="/remove_store" method="post" onsubmit="return confirmDeleteStore()">
             <select id="remove-store-name" name="store-name"></select>
-            <button type="submit">Remove Store</button>
+            <button type="submit">Upload</button>
         </form>
       </div>
 
@@ -118,7 +118,7 @@
             <select id="product-store-name" name="store-name"></select>  <!-- Change id here -->
             <input type="text" id="product-name" name="product-name" placeholder="Enter product name">
             <input type="text" id="product-price" name="product-price" placeholder="Enter product price">
-            <button type="submit">Add Product</button>
+            <button type="submit">Upload</button>
         </form>
       </div>
 
@@ -127,7 +127,7 @@
         <h2>Remove Product</h2>
         <form action="/remove_product" method="post">
             <select id="remove-product-id" name="product-id"></select>
-            <button type="submit">Remove Product</button>
+            <button type="submit">Upload</button>
         </form>
       </div>
 
@@ -174,7 +174,7 @@
       <div id="edit-product" style="display: none;">
         <h2>Edit Product</h2>
         <form action="/edit_product" method="post">
-            <select id="edit-product-store-name" name="store-name"></select>
+            <select id="edit-product-store-name" name="product-id"></select>
             <input type="text" id="edit-product-name" name="product-name" placeholder="Enter new product name">
             <input type="text" id="edit-product-price" name="product-price" placeholder="Enter new product price">
             <button type="submit">Upload</button>
@@ -234,6 +234,19 @@
           .then(response => response.json())
           .then(products => {
               const select = document.getElementById('remove-product-id');
+              products.forEach(product => {
+                  const option = document.createElement('option');
+                  option.text = `${product.id} (${product.name})`;
+                  option.value = product.id;
+                  select.appendChild(option);
+              });
+          });
+
+        // Fetch products for remove product dropdown
+        fetch('/get_products')
+          .then(response => response.json())
+          .then(products => {
+              const select = document.getElementById('edit-product-store-name');
               products.forEach(product => {
                   const option = document.createElement('option');
                   option.text = `${product.id} (${product.name})`;

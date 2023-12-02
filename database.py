@@ -42,10 +42,10 @@ def upload_product(product_name, product_price, product_store_name):
       conn.execute(text("INSERT INTO Products (Name, Price, StoreID) VALUES (:name, :price, (SELECT ID FROM Stores WHERE Name = :store))"), 
                    {"name": product_name, "price": product_price, "store": product_store_name})
 
-# def mod_product(product_id, product_name, product_price):
-#   with engine.connect() as conn:
-#       conn.execute(text("UPDATE Products SET Name = :name, Price = :price WHERE ID = :id;"), 
-#                    {"id": product_id, "name": product_name, "price": product_price})
+def mod_product(product_id, product_name, product_price):
+  with engine.connect() as conn:
+      conn.execute(text("UPDATE Products SET Name = :name, Price = :price WHERE ID = :id;"), 
+                   {"id": product_id, "name": product_name, "price": product_price})
 
 def delete_product(product_id):
   with engine.connect() as conn:
@@ -63,8 +63,9 @@ def load_distinct_products():
   with engine.connect() as conn:
     return conn.execute(text("SELECT DISTINCT Products.Name FROM Products"))
 
-def fetch_product_info(product_name, product_info):  # New function name
+def fetch_product_info(product_name, product_info):
   with engine.connect() as conn:
+    # Existing functionality
     if "Stores" in product_info and "Price" in product_info and "Product ID" in product_info:
       query = "SELECT Stores.Name, Products.Price, Products.ID FROM Stores JOIN Products ON Stores.ID = Products.StoreID WHERE Products.Name = :name"
     elif "Stores" in product_info and "Price" in product_info:
@@ -76,8 +77,15 @@ def fetch_product_info(product_name, product_info):  # New function name
     else:
       query = "SELECT {} FROM Products WHERE Name = :name".format(", ".join(product_info))
     result = conn.execute(text(query), {"name": product_name})
-    return [list(row) for row in result]  # Convert each tuple into a list
+    info = [list(row) for row in result]  # Convert each tuple into a list
 
+    # New functionality
+    min_price_result = conn.execute(text("SELECT MIN(Price) FROM Products WHERE Name = :name"), {"name": product_name})
+    min_price = min_price_result.scalar()  # scalar() returns the first element of the first result or None
+    avg_price_result = conn.execute(text("SELECT Stores.Name, AVG(Products.Price) FROM Stores JOIN Products ON Stores.ID = Products.StoreID WHERE Products.Name = :name GROUP BY Stores.Name"), {"name": product_name})
+    avg_prices = [{"Store": row[0], "Average Price": row[1]} for row in avg_price_result]
+
+    return {"Info": info, "Minimum Price of the product at the mall": min_price, "Average Prices of the Product at Each Store": avg_prices}
 
 
 
