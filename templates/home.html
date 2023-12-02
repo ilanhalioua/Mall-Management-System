@@ -210,20 +210,16 @@
   <!-- REPORT INTERFACE SECTION -->
   <div class="section">
     <h1>Select Data to Display</h1>
-
-    <!-- Show all employees -->
-    <div id="employees">
-      <h2>Employees</h2>
-      <button onclick="showAllEmployees()">Show All Employees</button>
-      <!-- Employee data will be populated here -->
-    </div>
-
-    <!-- Display all information -->
-    <div id="all-info">
-      <h2>All Information</h2>
-      <button onclick="getAllInfo()">Display All Info</button>
-      <!-- All info will be populated here -->
-    </div>
+    <form id="display-data-form">
+      <input type="checkbox" id="display-stores" name="display-data" value="Stores">
+      <label for="display-stores">Stores</label><br>
+      <input type="checkbox" id="display-products" name="display-data" value="Products">
+      <label for="display-products">Products</label><br>
+      <input type="checkbox" id="display-employees" name="display-data" value="Employees">
+      <label for="display-employees">Employees</label><br>
+      <button type="submit">Submit</button>
+    </form>
+    <div id="display-results"></div>
   </div>
 
 
@@ -298,6 +294,34 @@
                   select.appendChild(option);
               });
           });
+
+        document.getElementById('display-data-form').addEventListener('submit', function(e) {
+          e.preventDefault();  // Prevent the form from being submitted normally
+
+          var display_data = Array.from(document.querySelectorAll('#display-data-form input[type="checkbox"]:checked')).map(checkbox => checkbox.value);
+
+          fetch('/display_data', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({display_data: display_data})
+          })
+          .then(response => response.json())
+          .then(data => {
+            // Display the results
+            var resultDiv = document.getElementById('display-results');
+            resultDiv.innerHTML = '';  // Clear any existing results
+
+            // Display the data
+            data.forEach(item => {
+              var itemDiv = document.createElement('div');
+              itemDiv.textContent = JSON.stringify(item);
+              resultDiv.appendChild(itemDiv);
+            });
+          });
+        });
+
     };
 
     function confirmDeleteStore() {

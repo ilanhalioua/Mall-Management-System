@@ -55,9 +55,22 @@ def load_stores():
   with engine.connect() as conn:
     return conn.execute(text("SELECT Name FROM Stores"))
 
+def load_stores_report():
+  with engine.connect() as conn:
+    result = conn.execute(text("SELECT * FROM Stores"))
+    stores = [{"id": row[0], "name": row[1], "area": row[2], "status": row[3]} for row in result]
+    return stores
+
 def load_products():
   with engine.connect() as conn:
     return conn.execute(text("SELECT Products.ID, Products.Name FROM Products"))
+
+def load_products_report():
+  with engine.connect() as conn:
+    result = conn.execute(text("SELECT * FROM Products"))
+    keys = list(result.keys())  # Convert keys to a list
+    products = [{keys[i]: value for i, value in enumerate(row)} for row in result]
+    return products
 
 def load_distinct_products():
   with engine.connect() as conn:
@@ -88,12 +101,39 @@ def fetch_product_info(product_name, product_info):
     return {"Info": info, "Minimum Price of the product at the mall": min_price, "Average Prices of the Product at Each Store": avg_prices}
 
 
+def load_employees():
+  with engine.connect() as conn:
+    # Fetch center employees
+    result = conn.execute(text("""
+      SELECT Employees.Name, CentEmps.Occupation, Employees.Salary
+      FROM Employees
+      JOIN CentEmps ON Employees.ID = CentEmps.ID
+    """))
+    center_employees = [{"name": row[0], "occupation": row[1], "salary": row[2]} for row in result]
 
-# def load_employees_from_db():
-#   with engine.connect() as conn:
-#     result = conn.execute(text("SELECT * FROM Employees"))
-#     employees = []
-#     for row in result.all():
-#       employees.append(dict(row))
-#     return employees
+    # Fetch store employees
+    result = conn.execute(text("""
+      SELECT Employees.Name, StoreEmps.AssociatedStatus, Stores.Name, Employees.Salary
+      FROM Employees
+      JOIN StoreEmps ON Employees.ID = StoreEmps.ID
+      JOIN Stores ON StoreEmps.StoreID = Stores.ID
+    """))
+    store_employees = [{"name": row[0], "associated_status": row[1], "store": row[2], "salary": row[3]} for row in result]
+
+    return {"Center Employees": center_employees, "Store Employees": store_employees}
+
+
+def load_center_employee_occupations():
+  with engine.connect() as conn:
+    result = conn.execute(text("SELECT Occupation, COUNT(*) FROM CentEmps GROUP BY Occupation"))
+    occupations = [{row[0]: row[1]} for row in result]
+    return occupations
+
+def load_store_employee_counts():
+  with engine.connect() as conn:
+    result = conn.execute(text("SELECT Stores.Name, COUNT(*) FROM StoreEmps JOIN Stores ON StoreEmps.StoreID = Stores.ID GROUP BY Stores.Name"))
+    employee_counts = [{row[0]: row[1]} for row in result]
+    return employee_counts
+
+
 
