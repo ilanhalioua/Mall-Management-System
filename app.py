@@ -32,21 +32,25 @@ def remove_store():
     return 'Store removed successfully'
 
 
-@app.route("/add_product", methods=['POST'])
+@app.route("/add_product", methods=['POST']) # Req 7 (Transactions&Isolation)
 def add_product():
     product_name = request.form['product-name']
     product_price = request.form['product-price']
     product_store_name = request.form['store-name']
-    upload_product(product_name, product_price, product_store_name)
-    return 'Product added successfully'
+    if upload_product(product_name, product_price, product_store_name):
+        return 'Product added successfully'
+    else:
+        return 'Integrity Error: Tried adding a product to a store that was just removed from the mall by another user. Please go back and refresh the page.'
+
 
 @app.route("/edit_product", methods=['POST'])
 def edit_product():
     product_id = request.form['product-id']
     product_name = request.form['product-name']
     product_price = request.form['product-price']
-    mod_product(product_id, product_name, product_price)
-    return 'Product edited successfully'
+    result = mod_product(product_id, product_name, product_price)
+    return result
+
 
 @app.route("/remove_product", methods=['POST'])
 def remove_product():

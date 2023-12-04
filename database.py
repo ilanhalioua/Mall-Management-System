@@ -1,6 +1,8 @@
 # IMPORT THE SQALCHEMY LIBRARY's CREATE_ENGINE METHOD
 import os
-from sqlalchemy import create_engine, text, exc
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import IntegrityError
+
 
 # DEFINE THE DATABASE CREDENTIALS
 db_connection_string = os.environ['DB_CONNECTION_STRING']
@@ -32,20 +34,34 @@ def delete_store(store_name):
       conn.execute(text("DELETE FROM Products WHERE StoreID = :id"), {"id": store_id})
       # Delete the store
       conn.execute(text("DELETE FROM Stores WHERE Name = :name"), {"name": store_name})
-    else:
-      # Handle the case where the store is not found
-      print("Store not found")
 
 
-def upload_product(product_name, product_price, product_store_name):
+def upload_product(product_name, product_price, product_store_name): # Req 7
   with engine.connect() as conn:
-      conn.execute(text("INSERT INTO Products (Name, Price, StoreID) VALUES (:name, :price, (SELECT ID FROM Stores WHERE Name = :store))"), 
-                   {"name": product_name, "price": product_price, "store": product_store_name})
+    try:
+        conn.execute(text("INSERT INTO Products (Name, Price, StoreID) VALUES (:name, :price, (SELECT ID FROM Stores WHERE Name = :store))"), 
+                     {"name": product_name, "price": product_price, "store": product_store_name})
+        return True
+    except IntegrityError as e:
+        if '1048' in str(e):
+            return False
+        else:
+            raise e
+
 
 def mod_product(product_id, product_name, product_price):
   with engine.connect() as conn:
+    # Check if the product exists
+    product_row = conn.execute(text("SELECT ID FROM Products WHERE ID = :id"), {"id": product_id}).fetchone()
+    if product_row:
+      # If the product exists, update it
       conn.execute(text("UPDATE Products SET Name = :name, Price = :price WHERE ID = :id;"), 
                    {"id": product_id, "name": product_name, "price": product_price})
+      return 'Product updated successfully'
+    else:
+      # If the product doesn't exist, return an error message
+      return 'Integrity Error: Tried editing a product that was just removed from the mall by another user. Please go back and refresh the page.'
+
 
 def delete_product(product_id):
   with engine.connect() as conn:
