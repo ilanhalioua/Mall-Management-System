@@ -12,33 +12,41 @@ db_connection_string,
 connect_args={
   "ssl": {
     "ssl_ca": ""
-  }
-})
+    }
+  },
+  isolation_level="REPEATABLE READ"
+)
 
 def upload_store(store_name, store_area, store_status):
-  with engine.connect() as conn:
+  with engine.begin() as conn:
+      conn.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
       conn.execute(text("INSERT INTO Stores (Name, Area, Status, CenterName) VALUES (:name, :area, :status, 'Plaza Norte 2')"), 
                    {"name": store_name, "area": store_area, "status": store_status})
 
 def mod_store(store_name, store_area, store_status):
-  with engine.connect() as conn:
+  with engine.begin() as conn:
+      conn.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
       conn.execute(text("UPDATE Stores SET Area = :area, Status = :status WHERE Name = :name;"), 
                    {"name": store_name, "area": store_area, "status": store_status})
 
 def delete_store(store_name):
-  with engine.connect() as conn:
+  with engine.begin() as conn:
+    conn.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
     store_id_row = conn.execute(text("SELECT ID FROM Stores WHERE Name = :name"), {"name": store_name}).fetchone()
     if store_id_row:
       store_id = store_id_row[0]
       # Delete the products of the store
       conn.execute(text("DELETE FROM Products WHERE StoreID = :id"), {"id": store_id})
+      # Delete the employees of that store
+      conn.execute(text("DELETE FROM StoreEmps WHERE StoreID = :id"), {"id": store_id})
       # Delete the store
       conn.execute(text("DELETE FROM Stores WHERE Name = :name"), {"name": store_name})
 
 
 def upload_product(product_name, product_price, product_store_name): # Req 7
-  with engine.connect() as conn:
+  with engine.begin() as conn:
     try:
+        conn.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
         conn.execute(text("INSERT INTO Products (Name, Price, StoreID) VALUES (:name, :price, (SELECT ID FROM Stores WHERE Name = :store))"), 
                      {"name": product_name, "price": product_price, "store": product_store_name})
         return True
@@ -50,8 +58,9 @@ def upload_product(product_name, product_price, product_store_name): # Req 7
 
 
 def mod_product(product_id, product_name, product_price):
-  with engine.connect() as conn:
+  with engine.begin() as conn:
     # Check if the product exists
+    conn.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
     product_row = conn.execute(text("SELECT ID FROM Products WHERE ID = :id"), {"id": product_id}).fetchone()
     if product_row:
       # If the product exists, update it
@@ -64,26 +73,27 @@ def mod_product(product_id, product_name, product_price):
 
 
 def delete_product(product_id):
-  with engine.connect() as conn:
+  with engine.begin() as conn:
+    conn.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
     conn.execute(text("DELETE FROM Products WHERE ID = :id"), {"id": product_id})
 
 def load_stores():
-  with engine.connect() as conn:
+  with engine.begin() as conn:
     return conn.execute(text("SELECT Name FROM Stores"))
 
 def load_stores_report(): # Prepared statement
-  with engine.connect() as conn:
+  with engine.begin() as conn:
     stmt = text("SELECT * FROM Stores")
     result = conn.execute(stmt)
     stores = [{"id": row[0], "name": row[1], "area": row[2], "status": row[3]} for row in result]
     return stores
 
 def load_products():
-  with engine.connect() as conn:
+  with engine.begin() as conn:
     return conn.execute(text("SELECT Products.ID, Products.Name FROM Products"))
 
 def load_products_report(): # Prepared statement
-  with engine.connect() as conn:
+  with engine.begin() as conn:
     stmt = text("SELECT * FROM Products")
     result = conn.execute(stmt)
     keys = list(result.keys())  # Convert keys to a list
@@ -91,11 +101,11 @@ def load_products_report(): # Prepared statement
     return products
 
 def load_distinct_products():
-  with engine.connect() as conn:
+  with engine.begin() as conn:
     return conn.execute(text("SELECT DISTINCT Products.Name FROM Products"))
 
 def fetch_product_info(product_name, product_info): # Prepared statement
-  with engine.connect() as conn:
+  with engine.begin() as conn:
     # Existing functionality
     if "Stores" in product_info and "Price" in product_info and "Product ID" in product_info:
       stmt = text("SELECT Stores.Name, Products.Price, Products.ID FROM Stores JOIN Products ON Stores.ID = Products.StoreID WHERE Products.Name = :name")
@@ -125,7 +135,7 @@ def fetch_product_info(product_name, product_info): # Prepared statement
 
 
 def load_employees(): # Prepared statement
-  with engine.connect() as conn:
+  with engine.begin() as conn:
     # Fetch center employees
     stmt = text("""
       SELECT Employees.Name, CentEmps.Occupation, Employees.Salary
@@ -149,14 +159,14 @@ def load_employees(): # Prepared statement
 
 
 def load_center_employee_occupations(): # Prepared statement
-  with engine.connect() as conn:
+  with engine.begin() as conn:
     stmt = text("SELECT Occupation, COUNT(*) FROM CentEmps GROUP BY Occupation")
     result = conn.execute(stmt)
     occupations = [{row[0]: row[1]} for row in result]
     return occupations
 
 def load_store_employee_counts(): # Prepared statement
-  with engine.connect() as conn:
+  with engine.begin() as conn:
     stmt = text("SELECT Stores.Name, COUNT(*) FROM StoreEmps JOIN Stores ON StoreEmps.StoreID = Stores.ID GROUP BY Stores.Name")
     result = conn.execute(stmt)
     employee_counts = [{row[0]: row[1]} for row in result]

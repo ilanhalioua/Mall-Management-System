@@ -63,6 +63,21 @@
         background-color:#999;
       }
 
+      .item {
+        border: 1px solid #333;
+        padding: 10px;
+        margin: 10px 0;
+        background-color: #fff;
+        border-radius: 5px;
+      }
+
+      .item div {
+        margin: 5px 0;
+        color: #333;
+        font-size: 14px;
+      }
+
+
     </style>
 </head>
 <body>
@@ -318,7 +333,18 @@
             // Display the data
             data.forEach(item => {
               var itemDiv = document.createElement('div');
-              itemDiv.textContent = JSON.stringify(item);
+              itemDiv.className = 'item';  // Add a class to style the div
+
+              // Create HTML elements for each piece of data
+              Object.keys(item).forEach(key => {
+                var keyDiv = document.createElement('div');
+                keyDiv.textContent = key + ': ';
+                var valueDiv = document.createElement('div');
+                valueDiv.textContent = JSON.stringify(item[key]);
+                itemDiv.appendChild(keyDiv);
+                itemDiv.appendChild(valueDiv);
+              });
+
               resultDiv.appendChild(itemDiv);
             });
           });
@@ -327,7 +353,7 @@
     };
 
     function confirmDeleteStore() {
-        return confirm("Are you sure you want to remove this store? All of its products will be removed.");
+        return confirm("Are you sure you want to remove this store? All of its products and employees will be removed.");
     }
     
     function showEditOptions(value) {
