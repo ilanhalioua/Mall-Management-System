@@ -1,6 +1,7 @@
 # IMPORT THE SQALCHEMY LIBRARY's CREATE_ENGINE METHOD
 import os
 from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 
 
@@ -17,69 +18,56 @@ connect_args={
   isolation_level="REPEATABLE READ"
 )
 
-def upload_store(store_name, store_area, store_status):
-  with engine.begin() as conn:
-      conn.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
-      conn.execute(text("INSERT INTO Stores (Name, Area, Status, CenterName) VALUES (:name, :area, :status, 'Plaza Norte 2')"), 
+Session = sessionmaker(bind=engine)
+
+def upload_store(store_name, store_area, store_status): # ORM
+  with Session.begin() as session:
+    session.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
+    session.execute(text("INSERT INTO Stores (Name, Area, Status, CenterName) VALUES (:name, :area, :status, 'Plaza Norte 2')"), 
                    {"name": store_name, "area": store_area, "status": store_status})
 
-def mod_store(store_name, store_area, store_status):
-  with engine.begin() as conn:
-      conn.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
-      conn.execute(text("UPDATE Stores SET Area = :area, Status = :status WHERE Name = :name;"), 
+def mod_store(store_name, store_area, store_status): # ORM
+  with Session.begin() as session:
+    session.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
+    session.execute(text("UPDATE Stores SET Area = :area, Status = :status WHERE Name = :name;"), 
                    {"name": store_name, "area": store_area, "status": store_status})
 
-def delete_store(store_name):
-  with engine.begin() as conn:
-    conn.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
-    store_id_row = conn.execute(text("SELECT ID FROM Stores WHERE Name = :name"), {"name": store_name}).fetchone()
+def delete_store(store_name): # ORM
+  with Session.begin() as session:
+    session.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
+    store_id_row = session.execute(text("SELECT ID FROM Stores WHERE Name = :name"), {"name": store_name}).fetchone()
     if store_id_row:
       store_id = store_id_row[0]
       # Delete the products of the store
-      conn.execute(text("DELETE FROM Products WHERE StoreID = :id"), {"id": store_id})
+      session.execute(text("DELETE FROM Products WHERE StoreID = :id"), {"id": store_id})
       # Delete the employees of that store
-      conn.execute(text("DELETE FROM StoreEmps WHERE StoreID = :id"), {"id": store_id})
+      session.execute(text("DELETE FROM StoreEmps WHERE StoreID = :id"), {"id": store_id})
       # Delete the store
-      conn.execute(text("DELETE FROM Stores WHERE Name = :name"), {"name": store_name})
+      session.execute(text("DELETE FROM Stores WHERE Name = :name"), {"name": store_name})
 
-
-def upload_product(product_name, product_price, product_store_name): # Req 7
-  with engine.begin() as conn:
-    try:
-        conn.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
-        conn.execute(text("INSERT INTO Products (Name, Price, StoreID) VALUES (:name, :price, (SELECT ID FROM Stores WHERE Name = :store))"), 
+def upload_product(product_name, product_price, product_store_name): # ORM
+  with Session.begin() as session:
+    session.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
+    session.execute(text("INSERT INTO Products (Name, Price, StoreID) VALUES (:name, :price, (SELECT ID FROM Stores WHERE Name = :store))"), 
                      {"name": product_name, "price": product_price, "store": product_store_name})
-        return True
-    except IntegrityError as e:
-        if '1048' in str(e):
-            return False
-        else:
-            raise e
 
-
-def mod_product(product_id, product_name, product_price):
-  with engine.begin() as conn:
-    # Check if the product exists
-    conn.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
-    product_row = conn.execute(text("SELECT ID FROM Products WHERE ID = :id"), {"id": product_id}).fetchone()
+def mod_product(product_id, product_name, product_price): # ORM
+  with Session.begin() as session:
+    session.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
+    product_row = session.execute(text("SELECT ID FROM Products WHERE ID = :id"), {"id": product_id}).fetchone()
     if product_row:
-      # If the product exists, update it
-      conn.execute(text("UPDATE Products SET Name = :name, Price = :price WHERE ID = :id;"), 
+      session.execute(text("UPDATE Products SET Name = :name, Price = :price WHERE ID = :id;"), 
                    {"id": product_id, "name": product_name, "price": product_price})
-      return 'Product updated successfully'
-    else:
-      # If the product doesn't exist, return an error message
-      return 'Integrity Error: Tried editing a product that was just removed from the mall by another user. Please go back and refresh the page.'
 
+def delete_product(product_id): # ORM
+  with Session.begin() as session:
+    session.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
+    session.execute(text("DELETE FROM Products WHERE ID = :id"), {"id": product_id})
 
-def delete_product(product_id):
-  with engine.begin() as conn:
-    conn.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
-    conn.execute(text("DELETE FROM Products WHERE ID = :id"), {"id": product_id})
+def load_stores(): # ORM
+  with Session.begin() as session:
+    return session.execute(text("SELECT Name FROM Stores"))
 
-def load_stores():
-  with engine.begin() as conn:
-    return conn.execute(text("SELECT Name FROM Stores"))
 
 def load_stores_report(): # Prepared statement
   with engine.begin() as conn:
@@ -88,9 +76,9 @@ def load_stores_report(): # Prepared statement
     stores = [{"id": row[0], "name": row[1], "area": row[2], "status": row[3]} for row in result]
     return stores
 
-def load_products():
-  with engine.begin() as conn:
-    return conn.execute(text("SELECT Products.ID, Products.Name FROM Products"))
+def load_products(): # ORM
+  with Session.begin() as session:
+    return session.execute(text("SELECT Products.ID, Products.Name FROM Products"))
 
 def load_products_report(): # Prepared statement
   with engine.begin() as conn:
@@ -100,7 +88,7 @@ def load_products_report(): # Prepared statement
     products = [{keys[i]: value for i, value in enumerate(row)} for row in result]
     return products
 
-def load_distinct_products():
+def load_distinct_products(): # SQLAlchemy Core
   with engine.begin() as conn:
     return conn.execute(text("SELECT DISTINCT Products.Name FROM Products"))
 
