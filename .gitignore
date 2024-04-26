@@ -12,6 +12,10 @@ client-cert.pem
 server-ca.pem
 ###
 
+### PlanetScale BackUp (MySQL Workbench Code)###
+PlanetScale_BackUp/
+###
+
 # Distribution / packaging
 .Python
 build/
